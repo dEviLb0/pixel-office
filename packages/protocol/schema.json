@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PixelEvent",
+  "description": "Formal specification of the Pixel Office event protocol",
+  "oneOf": [
+    {
+      "title": "AgentStartedEvent",
+      "type": "object",
+      "required": ["type", "agent_id", "timestamp", "name"],
+      "properties": {
+        "type": { "const": "agent_started" },
+        "agent_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "name": { "type": "string" }
+      }
+    },
+    {
+      "title": "AgentThinkingEvent",
+      "type": "object",
+      "required": ["type", "agent_id", "timestamp"],
+      "properties": {
+        "type": { "const": "agent_thinking" },
+        "agent_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "message": { "type": "string" }
+      }
+    },
+    {
+      "title": "AgentToolStartEvent",
+      "type": "object",
+      "required": ["type", "agent_id", "timestamp", "tool"],
+      "properties": {
+        "type": { "const": "agent_tool_start" },
+        "agent_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "tool": { "type": "string" },
+        "input": {}
+      }
+    },
+    {
+      "title": "AgentToolEndEvent",
+      "type": "object",
+      "required": ["type", "agent_id", "timestamp", "tool"],
+      "properties": {
+        "type": { "const": "agent_tool_end" },
+        "agent_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "tool": { "type": "string" },
+        "output": {}
+      }
+    },
+    {
+      "title": "AgentFinishedEvent",
+      "type": "object",
+      "required": ["type", "agent_id", "timestamp"],
+      "properties": {
+        "type": { "const": "agent_finished" },
+        "agent_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "result": {}
+      }
+    },
+    {
+      "title": "AgentErrorEvent",
+      "type": "object",
+      "required": ["type", "agent_id", "timestamp", "error"],
+      "properties": {
+        "type": { "const": "agent_error" },
+        "agent_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "error": { "type": "string" }
+      }
+    },
+    {
+      "title": "AgentRemovedEvent",
+      "type": "object",
+      "required": ["type", "agent_id", "timestamp"],
+      "properties": {
+        "type": { "const": "agent_removed" },
+        "agent_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    {
+      "title": "SnapshotEvent",
+      "type": "object",
+      "required": ["type", "agents", "timestamp"],
+      "properties": {
+        "type": { "const": "snapshot" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "agents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["agent_id", "name", "status"],
+            "properties": {
+              "agent_id": { "type": "string" },
+              "name": { "type": "string" },
+              "status": {
+                "type": "string",
+                "enum": ["idle", "thinking", "tool_running", "finished", "error"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "OfficeResetEvent",
+      "type": "object",
+      "required": ["type", "timestamp"],
+      "properties": {
+        "type": { "const": "office_reset" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    }
+  ]
+}
