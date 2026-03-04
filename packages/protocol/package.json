@@ -1,0 +1,13 @@
+{
+  "name": "@pixel-office/protocol",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @pixel-office/client dev",
+    "build": "pnpm -r build"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}

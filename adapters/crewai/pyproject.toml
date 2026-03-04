@@ -1,0 +1,8 @@
+[project]
+name = "pixel-office-adapter-crewai"
+version = "0.0.1"
+requires-python = ">=3.10"
+dependencies = [
+    "crewai>=0.1.0",
+    "websockets>=12.0"
+]

@@ -1,0 +1,29 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .: {}
+
+  adapters/claude-code:
+    dependencies:
+      '@pixel-office/protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
+
+  packages/client:
+    dependencies:
+      '@pixel-office/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+
+  packages/protocol: {}
+
+  packages/server:
+    dependencies:
+      '@pixel-office/protocol':
+        specifier: workspace:*
+        version: link:../protocol
