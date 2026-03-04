@@ -2,12 +2,17 @@
   "name": "@pixel-office/protocol",
   "version": "0.0.1",
   "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "pnpm --filter @pixel-office/client dev",
-    "build": "pnpm -r build"
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
+  },
+   "devDependencies": {
+    "typescript": "^5.0.0"
   }
 }
