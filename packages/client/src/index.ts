@@ -16,3 +16,7 @@ export type { Seat, OfficeLayout } from './stores/office';
 // Pixi
 export { PixiApp } from './pixi/PixiApp';
 export type { PixiLayers } from './pixi/PixiApp';
+export { Character } from './pixi/Character';
+export type { CharacterState, Position } from './pixi/Character';
+export { CharacterManager } from './pixi/CharacterManager';
+export { SeatManager } from './pixi/SeatManager';
