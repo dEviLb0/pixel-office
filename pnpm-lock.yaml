@@ -19,6 +19,19 @@ importers:
       '@pixel-office/protocol':
         specifier: workspace:*
         version: link:../protocol
+      ws:
+        specifier: ^8.19.0
+        version: 8.19.0
+    devDependencies:
+      '@types/node':
+        specifier: ^25.3.3
+        version: 25.3.3
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/protocol:
     devDependencies:
