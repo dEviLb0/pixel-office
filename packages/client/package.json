@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@pixel-office/protocol": "workspace:*",
+    "pixi.js": "^8.16.0",
     "svelte": "^5.53.7",
     "ws": "^8.19.0"
   },

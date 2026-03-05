@@ -12,3 +12,7 @@ export type { ConnectionStatus } from './stores/connection';
 
 export { office, seatList, occupiedSeats } from './stores/office';
 export type { Seat, OfficeLayout } from './stores/office';
+
+// Pixi
+export { PixiApp } from './pixi/PixiApp';
+export type { PixiLayers } from './pixi/PixiApp';
