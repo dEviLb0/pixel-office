@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsc --watch"
+    "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
     "@pixel-office/protocol": "workspace:*",
@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/node": "^25.3.3",
     "@types/ws": "^8.18.1",
+    "tsx": "^4.0.0",
     "typescript": "^5.9.3"
   }
 }
