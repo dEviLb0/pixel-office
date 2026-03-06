@@ -2,7 +2,6 @@
   import { onMount, onDestroy } from 'svelte';
   import Dashboard from './components/Dashboard.svelte';
   import Canvas from './components/Canvas.svelte';
-  import LogPanel from './components/LogPanel.svelte';
   import { ws } from './ws/socket';
 
   onMount(() => {
@@ -22,24 +21,19 @@
   <main class="canvas-area">
     <Canvas />
   </main>
-
-  <aside class="sidebar-right">
-    <LogPanel />
-  </aside>
 </div>
 
 <style>
   .app {
     display: grid;
-    grid-template-columns: 220px 1fr 280px;
+    grid-template-columns: 260px 1fr;
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    background: #1a1a2e;
+    background: #0a0a0f;
   }
 
-  .sidebar-left,
-  .sidebar-right {
+  .sidebar-left {
     height: 100vh;
     overflow: hidden;
   }
