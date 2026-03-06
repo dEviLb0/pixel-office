@@ -1,14 +1,20 @@
 import { handleEvent } from './eventHandler';
 import { connection } from '../stores/connection';
 
-const SERVER_URL = import.meta.env.VITE_WS_URL ?? 'ws://localhost:3001';
+const SERVER_URL = import.meta.env.VITE_WS_URL ?? 'ws://localhost:4242';
 
 let socket: WebSocket | null = null;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 let reconnectDelay = 1000;
 const MAX_DELAY = 30000;
+let isClosingIntentionally = false;
 
 function connect(): void {
+  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
+
+  isClosingIntentionally = false;
   connection.setConnecting();
   socket = new WebSocket(SERVER_URL);
 
@@ -28,12 +34,14 @@ function connect(): void {
 
   socket.addEventListener('close', () => {
     connection.setDisconnected();
-    scheduleReconnect();
+    if (!isClosingIntentionally) {
+      scheduleReconnect();
+    }
   });
 
   socket.addEventListener('error', () => {
     connection.setError();
-    socket?.close();
+    // Ne pas appeler socket.close() ici : le navigateur déclenche 'close' automatiquement
   });
 }
 
@@ -47,7 +55,15 @@ function scheduleReconnect(): void {
 
 export const ws = {
   connect,
+  send(data: unknown) {
+    if (socket?.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(data));
+    } else {
+      console.warn('[socket] Cannot send, socket not open');
+    }
+  },
   close() {
+    isClosingIntentionally = true;
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
     socket?.close();
     socket = null;
