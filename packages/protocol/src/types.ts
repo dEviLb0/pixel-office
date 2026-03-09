@@ -5,6 +5,9 @@ export type AgentStatus =
   | 'finished'
   | 'error';
 
+// Nouveau : rôle de l'agent, envoyé par le serveur
+export type AgentRole = 'worker' | 'orchestrator';
+
 export interface BaseEvent {
   agent_id: string;
   timestamp: string; // ISO 8601
@@ -13,6 +16,7 @@ export interface BaseEvent {
 export interface AgentStartedEvent extends BaseEvent {
   type: 'agent_started';
   name: string;
+  role?: AgentRole; // optionnel — le client defaulte à 'worker'
 }
 
 export interface AgentThinkingEvent extends BaseEvent {
@@ -50,6 +54,7 @@ export interface AgentState {
   agent_id: string;
   name: string;
   status: AgentStatus;
+  role: AgentRole; // toujours présent dans le snapshot
 }
 
 export interface SnapshotEvent {

@@ -1,6 +1,7 @@
 export type {
   AgentStatus,
   BaseEvent,
+  AgentRole,      
   AgentStartedEvent,
   AgentThinkingEvent,
   AgentToolStartEvent,

@@ -1,9 +1,14 @@
 import { writable, derived } from 'svelte/store';
 
+export type SeatState = 'free' | 'reserved' | 'occupied';
+export type FacingDirection = 'up' | 'down' | 'left' | 'right';
+
 export interface Seat {
   seat_id: string;
   x: number;
   y: number;
+  state: SeatState;
+  facingDirection: FacingDirection;
   assignedAgentId?: string;
 }
 
@@ -32,21 +37,30 @@ function createOfficeStore() {
       });
     },
 
-    assignSeat(seat_id: string, agent_id: string) {
+    // Marque le siège comme réservé (agent en chemin)
+    reserveSeat(seat_id: string, agent_id: string) {
       update((office) => {
         const seat = office.seats.get(seat_id);
-        if (seat) {
-          office.seats.set(seat_id, { ...seat, assignedAgentId: agent_id });
-        }
+        if (seat) office.seats.set(seat_id, { ...seat, state: 'reserved', assignedAgentId: agent_id });
         return office;
       });
     },
 
+    // Marque le siège comme occupé (agent arrivé)
+    assignSeat(seat_id: string, agent_id: string) {
+      update((office) => {
+        const seat = office.seats.get(seat_id);
+        if (seat) office.seats.set(seat_id, { ...seat, state: 'occupied', assignedAgentId: agent_id });
+        return office;
+      });
+    },
+
+    // Libère le siège de l'agent
     releaseSeat(agent_id: string) {
       update((office) => {
         for (const [id, seat] of office.seats) {
           if (seat.assignedAgentId === agent_id) {
-            office.seats.set(id, { ...seat, assignedAgentId: undefined });
+            office.seats.set(id, { ...seat, state: 'free', assignedAgentId: undefined });
           }
         }
         return office;
@@ -61,6 +75,9 @@ function createOfficeStore() {
 
 export const office = createOfficeStore();
 export const seatList = derived(office, ($office) => Array.from($office.seats.values()));
+export const freeSeats = derived(office, ($office) =>
+  Array.from($office.seats.values()).filter((s) => s.state === 'free')
+);
 export const occupiedSeats = derived(office, ($office) =>
-  Array.from($office.seats.values()).filter((s) => s.assignedAgentId !== undefined)
+  Array.from($office.seats.values()).filter((s) => s.state === 'occupied')
 );
