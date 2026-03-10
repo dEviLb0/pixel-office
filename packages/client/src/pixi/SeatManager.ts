@@ -1,96 +1,80 @@
-import { Container, Graphics, Text, TextStyle } from 'pixi.js';
-import type { OfficeLayout } from '../stores/office';
+import { Container, Graphics } from 'pixi.js';
+import { get } from 'svelte/store';
+import { office, seatList } from '../stores/office';
+import type { Seat, SeatState } from '../stores/office';
 
 const TILE_SIZE = 48;
 
+// Couleur du siège selon son état
+const SEAT_COLORS: Record<SeatState, number> = {
+  free: 0x2ecc71,
+  reserved: 0xf39c12,
+  occupied: 0xe74c3c,
+};
+
 export class SeatManager {
-  private container: Container;
-  private seats: Map<string, Graphics> = new Map();
-  private seatOverrides: Map<string, string> = new Map(); // seat_id -> agent_id
+  private layer: Container;
+  private seatGraphics: Map<string, Graphics> = new Map();
+  private unsubscribe: (() => void) | null = null;
 
   constructor(layer: Container) {
-    this.container = new Container();
-    layer.addChild(this.container);
+    this.layer = layer;
   }
 
-  buildFromLayout(layout: OfficeLayout): void {
-    this.clear();
-    for (const seat of layout.seats.values()) {
-      this.addSeat(seat.seat_id, seat.x, seat.y);
-    }
-  }
-
-  private addSeat(seatId: string, x: number, y: number): void {
-    const graphic = new Graphics();
-    graphic.roundRect(2, 2, TILE_SIZE - 4, TILE_SIZE - 4, 6).fill({ color: 0x2c3e50 });
-    graphic.roundRect(2, 2, TILE_SIZE - 4, TILE_SIZE - 4, 6).stroke({ color: 0x3d5166, width: 1 });
-
-    const label = new Text({
-      text: seatId,
-      style: new TextStyle({
-        fontSize: 8,
-        fill: 0x7f8c8d,
-        fontFamily: 'monospace',
-      }),
+  init(): void {
+    this.unsubscribe = seatList.subscribe((seats) => {
+      this.syncSeats(seats);
     });
-    label.anchor.set(0.5, 0.5);
-    label.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
-
-    const wrapper = new Container();
-    wrapper.addChild(graphic);
-    wrapper.addChild(label);
-    wrapper.position.set(x * TILE_SIZE, y * TILE_SIZE);
-    wrapper.eventMode = 'static';
-    wrapper.cursor = 'pointer';
-
-    this.seats.set(seatId, graphic);
-    this.container.addChild(wrapper);
   }
 
-  assignAgent(seatId: string, agentId: string): void {
-    this.seatOverrides.set(seatId, agentId);
-    this.updateSeatColor(seatId, true);
-  }
+  // Crée ou met à jour les graphiques pour chaque siège
+  private syncSeats(seats: Seat[]): void {
+    const activeIds = new Set(seats.map((s) => s.seat_id));
 
-  unassignAgent(seatId: string): void {
-    this.seatOverrides.delete(seatId);
-    this.updateSeatColor(seatId, false);
-  }
-
-  overrideSeat(seatId: string, agentId: string): void {
-    const previous = this.getAgentOnSeat(seatId);
-    if (previous) this.unassignAgent(seatId);
-    this.assignAgent(seatId, agentId);
-  }
-
-  getAgentOnSeat(seatId: string): string | undefined {
-    return this.seatOverrides.get(seatId);
-  }
-
-  getSeatForAgent(agentId: string): string | undefined {
-    for (const [seatId, aId] of this.seatOverrides.entries()) {
-      if (aId === agentId) return seatId;
+    for (const seat of seats) {
+      if (!this.seatGraphics.has(seat.seat_id)) {
+        this.createSeatGraphic(seat);
+      } else {
+        this.updateSeatGraphic(seat);
+      }
     }
-    return undefined;
+
+    // Retire les sièges supprimés
+    for (const [id, graphic] of this.seatGraphics) {
+      if (!activeIds.has(id)) {
+        this.layer.removeChild(graphic);
+        graphic.destroy();
+        this.seatGraphics.delete(id);
+      }
+    }
   }
 
-  private updateSeatColor(seatId: string, occupied: boolean): void {
-    const graphic = this.seats.get(seatId);
-    if (!graphic) return;
-    graphic.clear();
-    const color = occupied ? 0x1a6b3a : 0x2c3e50;
-    const border = occupied ? 0x2ecc71 : 0x3d5166;
-    graphic.roundRect(2, 2, TILE_SIZE - 4, TILE_SIZE - 4, 6).fill({ color });
-    graphic.roundRect(2, 2, TILE_SIZE - 4, TILE_SIZE - 4, 6).stroke({ color: border, width: 1 });
+  private createSeatGraphic(seat: Seat): void {
+    const g = new Graphics();
+    this.drawSeat(g, seat);
+    this.layer.addChild(g);
+    this.seatGraphics.set(seat.seat_id, g);
   }
 
-  clear(): void {
-    this.seats.clear();
-    this.seatOverrides.clear();
-    this.container.removeChildren();
+  // Met à jour la couleur du siège selon son SeatState
+  private updateSeatGraphic(seat: Seat): void {
+    const g = this.seatGraphics.get(seat.seat_id)!;
+    g.clear();
+    this.drawSeat(g, seat);
+  }
+
+  private drawSeat(g: Graphics, seat: Seat): void {
+    const x = seat.x * TILE_SIZE;
+    const y = seat.y * TILE_SIZE;
+    const color = SEAT_COLORS[seat.state];
+    g.roundRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8, 6).fill({ color });
   }
 
   destroy(): void {
-    this.container.destroy({ children: true });
+    this.unsubscribe?.();
+    for (const graphic of this.seatGraphics.values()) {
+      graphic.destroy();
+    }
+    this.seatGraphics.clear();
   }
 }
