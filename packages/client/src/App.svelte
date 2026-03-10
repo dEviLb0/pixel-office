@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import Dashboard from './components/Dashboard.svelte';
   import Canvas from './components/Canvas.svelte';
+  import TestPanel from './components/TestPanel.svelte';
   import { ws } from './ws/socket';
 
   onMount(() => {
@@ -21,6 +22,8 @@
   <main class="canvas-area">
     <Canvas />
   </main>
+
+  <TestPanel />
 </div>
 
 <style>

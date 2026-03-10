@@ -1,26 +1,26 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { PixiApp } from '../pixi/PixiApp';
-  import { CharacterManager } from '../pixi/CharacterManager';
+  import { OfficeRenderer } from '../pixi/OfficeRenderer';
 
   let canvasEl: HTMLCanvasElement;
   let pixiApp: PixiApp;
-  let characterManager: CharacterManager;
+  let officeRenderer: OfficeRenderer;
 
   onMount(async () => {
     pixiApp = new PixiApp();
     await pixiApp.init(canvasEl);
 
-    characterManager = new CharacterManager(pixiApp.layers.furniture, pixiApp.layers.characters);
-    characterManager.init();
+    officeRenderer = new OfficeRenderer(pixiApp);
+    officeRenderer.init();
 
     pixiApp.ticker.add(() => {
-      characterManager.update();
+      officeRenderer.update();
     });
   });
 
   onDestroy(() => {
-    characterManager?.destroy();
+    officeRenderer?.destroy();
     pixiApp?.destroy();
   });
 </script>
