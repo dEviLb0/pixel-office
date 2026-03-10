@@ -1,19 +1,42 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import type { AgentState } from '../stores/agents';
+import type { AgentRole } from '@pixel-office/protocol';
 
-export type CharacterState = 'idle' | 'working' | 'moving' | 'thinking' | 'error';
+export type CharacterState = 'idle' | 'tool_running' | 'moving' | 'thinking' | 'error';
 
 export interface Position {
   x: number;
   y: number;
 }
 
+// Couleur du point de statut selon l'état
 const STATE_COLORS: Record<CharacterState, number> = {
   idle: 0x95a5a6,
-  working: 0x2ecc71,
+  tool_running: 0x2ecc71,
   moving: 0x3498db,
   thinking: 0xf39c12,
   error: 0xe74c3c,
+};
+
+// Emoji affiché dans la bulle au-dessus du personnage
+const STATE_BUBBLE: Record<CharacterState, string> = {
+  idle: '',
+  tool_running: '⚙️',
+  moving: '',
+  thinking: '💭',
+  error: '❌',
+};
+
+// Couleur du corps selon le rôle
+const ROLE_COLORS: Record<AgentRole, number> = {
+  worker: 0x4a90d9,
+  orchestrator: 0x9b59b6,
+};
+
+// Rayon du corps selon le rôle — l'orchestrateur est plus grand
+const ROLE_RADIUS: Record<AgentRole, number> = {
+  worker: 14,
+  orchestrator: 18,
 };
 
 const TILE_SIZE = 48;
@@ -23,20 +46,24 @@ export class Character {
   private body: Graphics;
   private statusIndicator: Graphics;
   private nameLabel: Text;
+  private bubble: Text; // bulle visuelle au-dessus du personnage
 
   public id: string;
+  public role: AgentRole;
   public state: CharacterState = 'idle';
   public gridPos: Position = { x: 0, y: 0 };
   private targetPos: Position | null = null;
   private path: Position[] = [];
   private moveSpeed = 3;
 
-  constructor(id: string, name: string, gridPos: Position) {
+  constructor(id: string, name: string, role: AgentRole, gridPos: Position) {
     this.id = id;
+    this.role = role;
     this.gridPos = { ...gridPos };
     this.container = new Container();
     this.body = new Graphics();
     this.statusIndicator = new Graphics();
+
     this.nameLabel = new Text({
       text: name,
       style: new TextStyle({
@@ -46,28 +73,51 @@ export class Character {
       }),
     });
 
+    // Bulle affichée au-dessus du personnage
+    this.bubble = new Text({
+      text: '',
+      style: new TextStyle({
+        fontSize: 14,
+        fontFamily: 'monospace',
+      }),
+    });
+
     this.buildSprite();
     this.setWorldPosition(gridPos);
   }
 
   private buildSprite(): void {
-    this.body.circle(0, 0, 14).fill({ color: 0x4a90d9 });
-    this.statusIndicator.circle(10, -10, 5).fill({ color: STATE_COLORS[this.state] });
+    const radius = ROLE_RADIUS[this.role];
+    const color = ROLE_COLORS[this.role];
+
+    this.body.circle(0, 0, radius).fill({ color });
+    this.statusIndicator.circle(radius - 4, -radius + 4, 5).fill({ color: STATE_COLORS[this.state] });
 
     this.nameLabel.anchor.set(0.5, 0);
-    this.nameLabel.position.set(0, 18);
+    this.nameLabel.position.set(0, radius + 4);
+
+    // La bulle se place au-dessus du corps
+    this.bubble.anchor.set(0.5, 1);
+    this.bubble.position.set(0, -(radius + 4));
 
     this.container.addChild(this.body);
     this.container.addChild(this.statusIndicator);
     this.container.addChild(this.nameLabel);
+    this.container.addChild(this.bubble);
     this.container.eventMode = 'static';
     this.container.cursor = 'pointer';
   }
 
   setState(newState: CharacterState): void {
     this.state = newState;
+
+    // Met à jour le point de statut
+    const radius = ROLE_RADIUS[this.role];
     this.statusIndicator.clear();
-    this.statusIndicator.circle(10, -10, 5).fill({ color: STATE_COLORS[newState] });
+    this.statusIndicator.circle(radius - 4, -radius + 4, 5).fill({ color: STATE_COLORS[newState] });
+
+    // Met à jour la bulle — vide si pas d'emoji pour cet état
+    this.bubble.text = STATE_BUBBLE[newState];
   }
 
   setWorldPosition(gridPos: Position): void {
@@ -161,7 +211,7 @@ export class Character {
     const stateMap: Record<AgentState['status'], CharacterState> = {
       idle: 'idle',
       thinking: 'thinking',
-      tool_running: 'working',
+      tool_running: 'tool_running',
       finished: 'idle',
       error: 'error',
     };
