@@ -7,6 +7,10 @@ export interface PixiLayers {
   ui: Container;
 }
 
+// Dimensions de la grille — doivent correspondre à celles de OfficeRenderer
+const GRID_WIDTH_PX = 40 * 48;  // 1920px
+const GRID_HEIGHT_PX = 30 * 48; // 1440px
+
 export class PixiApp {
   private app: Application;
   public layers!: PixiLayers;
@@ -46,6 +50,12 @@ export class PixiApp {
   private setupViewport(): void {
     const stage = this.app.stage;
 
+    // Calcule le scale initial pour que la grille rentre dans l'écran
+    const scaleX = this.app.screen.width / GRID_WIDTH_PX;
+    const scaleY = this.app.screen.height / GRID_HEIGHT_PX;
+    const initialScale = Math.min(scaleX, scaleY) * 0.95; // 5% de marge
+    stage.scale.set(initialScale);
+
     let isDragging = false;
     let dragStart = { x: 0, y: 0 };
     let stageStart = { x: 0, y: 0 };
@@ -54,7 +64,7 @@ export class PixiApp {
     this.app.canvas.addEventListener('wheel', (e: WheelEvent) => {
       e.preventDefault();
       const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.min(Math.max(stage.scale.x * scaleAmount, 0.25), 4);
+      const newScale = Math.min(Math.max(stage.scale.x * scaleAmount, 0.1), 4);
       stage.scale.set(newScale);
     });
 
